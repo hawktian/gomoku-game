@@ -1,2 +1,5 @@
 conf.php
+*.tswp
 *.swp
+composer.lock
+vendor

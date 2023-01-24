@@ -1,11 +1,14 @@
 <?php
+require_once('init.php');
+require_once __DIR__ . '/vendor/autoload.php';
 use Swoole\Http\Request;
 use Swoole\Http\Response;
 use Swoole\WebSocket\CloseFrame;
 use Swoole\Coroutine\Http\Server;
 use function Swoole\Coroutine\run;
 
-require_once('init.php');
+use PhpAmqpLib\Connection\AMQPStreamConnection;
+use PhpAmqpLib\Message\AMQPMessage;
 
 run(function () use ($conf) {
 
@@ -35,6 +38,15 @@ run(function () use ($conf) {
 			} else {
 				$data['order'] = 'black';
 			}
+
+            $connection = new AMQPStreamConnection('', 5672, '', '');
+            $channel = $connection->channel();
+
+            $channel->queue_declare('order', false, false, false, false);
+
+            $content = 'order'.time();
+            $msg = new AMQPMessage($content);
+            $channel->basic_publish($msg, '', 'order');
 
             if ($frame === '') {
                 unset($wsObjects[$objectId]);
